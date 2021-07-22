@@ -30,11 +30,11 @@ class Recipe(models.Model):
         null=True,
         related_name="recipes"
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Описание',
         null=True
     )
-    time = models.PositiveIntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления',
     )
     image = models.ImageField(
@@ -48,11 +48,6 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         through='RecipeIngredient',
         to='Ingredient'
-    )
-    slug = models.SlugField(
-        null=False,
-        unique=True,
-        max_length=80
     )
     tags = models.CharField(
         verbose_name='Теги',
