@@ -1,8 +1,6 @@
-# build env
-FROM node:13.12.0-alpine as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . ./
-RUN npm run build
-CMD cp -r build result_build
+FROM python:3.8
+WORKDIR /code
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD python manage.py runserver 0.0.0.0:8000

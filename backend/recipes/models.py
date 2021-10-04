@@ -5,17 +5,20 @@ User = get_user_model()
 
 
 class MeasureUnit(models.TextChoices):
-    GRAM = 'GRAM', 'г.'
+    GRAM = 'г.'
 
     class Meta:
         verbose_name = 'Единица измерения'
         verbose_name_plural = 'Единицы измерения'
 
 
-class Tags(models.TextChoices):
-    BREAKFAST = 'BREAKFAST', 'завтрак'
-    DINNER = 'DINNER', 'обед'
-    SUPPER = 'SUPPER', 'ужин'
+class Tag(models.Model):
+    name = models.CharField(
+        verbose_name='Имя',
+        max_length=25
+    )
+    color = models.CharField(max_length=15)
+    slug = models.SlugField()
 
     class Meta:
         verbose_name = 'Тег'
@@ -49,10 +52,9 @@ class Recipe(models.Model):
         through='RecipeIngredient',
         to='Ingredient'
     )
-    tags = models.CharField(
-        verbose_name='Теги',
-        max_length=256,
-        choices=Tags.choices
+    tags = models.ManyToManyField(
+        through='RecipeTag',
+        to='Tag'
     )
 
     def __str__(self):
@@ -80,6 +82,16 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+
+class RecipeTag(models.Model):
+    recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(to=Tag, on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = 'Тег рецепта'
+        verbose_name_plural = 'Теги рецепта'
 
 
 class RecipeIngredient(models.Model):
