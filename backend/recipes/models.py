@@ -1,5 +1,16 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.contrib.auth import get_user_model
+
+
+class AppUser(AbstractUser):
+    AUTH_USER_MODEL = 'recipes.User'
+
+    class Meta:
+        swappable = 'AUTH_USER_MODEL'
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
 
 User = get_user_model()
 
