@@ -1,6 +1,8 @@
-from .models import Ingredient, Recipe, User, Tag
+from .models import Ingredient, Recipe, AppUser, Tag
 from rest_framework import mixins, viewsets, permissions
 from .serializers import IngredientSerializer, RecipeSerializer, UserSerializer, TagsSerializer
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -12,7 +14,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = AppUser.objects.all()
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -20,6 +22,14 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.request.method == "POST":
             return [permissions.IsAdminUser()]
     serializer_class = UserSerializer
+
+    def retrieve(self, request: Request, *args, **kwargs):
+        """
+        If provided 'pk' is "me" then return the current user.
+        """
+        if kwargs.get('pk') == 'me':
+            return Response(self.get_serializer(request.user).data)
+        return super().retrieve(request, args, kwargs)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,7 +1,11 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
+
+class AppUser(AbstractUser):
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    email = models.EmailField(unique=True)
 
 
 class MeasureUnit(models.TextChoices):
@@ -27,7 +31,7 @@ class Tag(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        User,
+        AppUser,
         on_delete=models.CASCADE,
         verbose_name='Автор',
         null=True,
