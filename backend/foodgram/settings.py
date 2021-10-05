@@ -8,7 +8,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'users.AppUser'
+AUTH_USER_MODEL = 'recipes.AppUser'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
