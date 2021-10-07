@@ -24,9 +24,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def retrieve(self, request: Request, *args, **kwargs):
-        """
-        If provided 'pk' is "me" then return the current user.
-        """
         if kwargs.get('pk') == 'me':
             return Response(self.get_serializer(request.user).data)
         return super().retrieve(request, args, kwargs)
