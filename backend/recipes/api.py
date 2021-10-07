@@ -13,7 +13,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
 
 
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = AppUser.objects.all()
 
