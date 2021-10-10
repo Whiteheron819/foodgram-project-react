@@ -21,12 +21,15 @@ class Tag(models.Model):
         verbose_name='Имя',
         max_length=25
     )
-    color = models.CharField(max_length=15)
+    color = models.CharField(max_length=15, verbose_name='Цвет')
     slug = models.SlugField()
 
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -91,7 +94,6 @@ class Ingredient(models.Model):
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE)
     tag = models.ForeignKey(to=Tag, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = 'Тег рецепта'
@@ -99,10 +101,28 @@ class RecipeTag(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(to=Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE, related_name='ingredients_in')
+    ingredient = models.ForeignKey(to=Ingredient, on_delete=models.CASCADE, related_name='ingredients_in')
     amount = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE,
+                             related_name='favourite')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               related_name='in_favourite')
+
+    class Meta:
+        constraints = (models.UniqueConstraint(fields=['user', 'recipe'],
+                                               name='following_unique'),)
+
+
+class ShoppingList(models.Model):
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               related_name='recipes_in')
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE,
+                             related_name='current_user')
