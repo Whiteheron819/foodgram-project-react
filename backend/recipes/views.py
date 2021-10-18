@@ -24,12 +24,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = AppUser.objects.all()
-
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [permissions.AllowAny()]
-        elif self.request.method == "POST":
-            return [permissions.IsAdminUser()]
+    permission_classes = [
+        permissions.AllowAny
+    ]
     serializer_class = UserSerializer
 
     def retrieve(self, request: Request, *args, **kwargs):
@@ -44,6 +41,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         permissions.AllowAny
     ]
     serializer_class = TagsSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):

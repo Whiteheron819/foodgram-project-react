@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-vvr28e85nrigere_*antezn%&=suxc%6yq(p+2^!4k))63u!@u
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'backend:8000', '*']
 
 AUTH_USER_MODEL = 'recipes.AppUser'
 

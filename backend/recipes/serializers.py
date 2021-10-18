@@ -63,25 +63,25 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True, source='ingredients_in')
+    ingredients = RecipeIngredientSerializer(many=True, source='ingredients')
     tags = serializers.PrimaryKeyRelatedField(many=True,
                                               queryset=Tag.objects.all())
     image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image',
-                  'name', 'text', 'cooking_time')
+        fields = '__all__'
+        read_only_fields = ('author',)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients_in')
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
 
         for ingredient in ingredients:
             current_ingredient = (
-                Ingredient.objects.get(pk=ingredient['ingredient']['id'].id)
+                get_object_or_404(Ingredient, id=ingredient['id'])
             )
             RecipeIngredient.objects.create(
                 ingredient=current_ingredient,
@@ -93,7 +93,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         if 'ingredients' in self.initial_data:
-            ingredients = validated_data.pop('ingredients_in')
+            ingredients = validated_data.pop('ingredients')
             instance.ingredients.clear()
             for ingredient in ingredients:
                 current_ingredient = (
