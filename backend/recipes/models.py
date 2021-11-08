@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MinValueValidator
 
 
 class AppUser(AbstractUser):
@@ -77,7 +78,7 @@ class Ingredient(models.Model):
         verbose_name='Название',
         max_length=256,
     )
-    measure_unit = models.CharField(
+    measurement_unit = models.CharField(
         verbose_name='Единицы измерения',
         choices=MeasureUnit.choices,
         max_length=256,
@@ -103,7 +104,7 @@ class RecipeTag(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE, related_name='ingredients_in')
     ingredient = models.ForeignKey(to=Ingredient, on_delete=models.CASCADE, related_name='ingredients_in')
-    amount = models.PositiveIntegerField()
+    amount = models.FloatField(validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = 'Ингредиент рецепта'
