@@ -4,8 +4,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .models import Ingredient, Recipe, AppUser, Tag
-from .serializers import IngredientSerializer, GetRecipeSerializer, PostRecipeSerializer, TagsSerializer
 from .permissions import IsAuthorOrReadOnly
+from .serializers import IngredientSerializer, GetRecipeSerializer, \
+    PostRecipeSerializer, TagsSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
