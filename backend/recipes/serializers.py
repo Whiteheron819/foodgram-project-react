@@ -30,7 +30,25 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
+
+
+class GetRecipeIngredientSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(read_only=True, source='ingredient.name')
+    measurement_unit = (
+        serializers.CharField(read_only=True,
+                              source='ingredient.measurement_unit')
+    )
+
+
+class PostRecipeIngredientSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),
+                                            source='ingredient.id')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -63,7 +81,8 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True, source='ingredients')
+    ingredients = PostRecipeIngredientSerializer(many=True,
+                                                 source='ingredients_in')
     tags = serializers.PrimaryKeyRelatedField(many=True,
                                               queryset=Tag.objects.all())
     image = Base64ImageField(max_length=None, use_url=True)
@@ -74,19 +93,20 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('author',)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('ingredients_in')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
 
         for ingredient in ingredients:
             current_ingredient = (
-                get_object_or_404(Ingredient, id=ingredient['id'])
+                Ingredient.objects.get(pk=ingredient['ingredient']['id'].id)
             )
-            RecipeIngredient.objects.create(
+            amount = ingredient['amount']
+            RecipeIngredient.objects.update_or_create(
                 ingredient=current_ingredient,
                 recipe=recipe,
-                amount=ingredient['amount']
+                defaults={'amount': amount}
             )
         return recipe
 
@@ -125,3 +145,10 @@ class PostRecipeSerializer(serializers.ModelSerializer):
                                                    instance.cooking_time)
         instance.save()
         return instance
+
+
+class ShoppingListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ShoppingList
+        fields = '__all__'

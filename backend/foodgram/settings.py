@@ -6,6 +6,8 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('ENGINE', 'django.db.backends.postgresql'),

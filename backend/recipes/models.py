@@ -80,8 +80,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы измерения',
-        choices=MeasureUnit.choices,
-        max_length=256,
+        max_length=25,
     )
 
     def __str__(self):

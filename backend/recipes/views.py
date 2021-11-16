@@ -1,18 +1,23 @@
 from djoser.serializers import UserSerializer
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from .models import Ingredient, Recipe, AppUser, Tag
 from .permissions import IsAuthorOrReadOnly
 from .serializers import IngredientSerializer, GetRecipeSerializer, \
-    PostRecipeSerializer, TagsSerializer
+    PostRecipeSerializer, TagsSerializer, ShoppingListSerializer
+from .filters import MySearchFilter, RecipeFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer = PostRecipeSerializer
     permission_class = [IsAuthorOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -51,3 +56,23 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         permissions.AllowAny
     ]
     serializer_class = IngredientSerializer
+    filter_backends = [MySearchFilter]
+    search_fields = ['name', ]
+    pagination_class = None
+
+
+@api_view(['GET', 'DELETE'])
+def shopping_list(request, id):
+    recipe = get_object_or_404(Recipe, id=id)
+    author = request.user
+    print(recipe)
+    print(author)
+
+    if request.method == 'GET':
+        serializer = ShoppingListSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'DELETE':
+        pass
