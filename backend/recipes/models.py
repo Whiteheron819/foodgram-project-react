@@ -9,14 +9,6 @@ class AppUser(AbstractUser):
     email = models.EmailField(unique=True)
 
 
-class MeasureUnit(models.TextChoices):
-    GRAM = 'г.'
-
-    class Meta:
-        verbose_name = 'Единица измерения'
-        verbose_name_plural = 'Единицы измерения'
-
-
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Имя',

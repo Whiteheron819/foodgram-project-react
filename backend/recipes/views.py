@@ -63,13 +63,11 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 @api_view(['GET', 'DELETE'])
 def shopping_list(request, id):
-    recipe = get_object_or_404(Recipe, id=id)
-    author = request.user
-    print(recipe)
-    print(author)
-
+    data = {"user": request.user.id,
+            "recipe": id,
+            }
     if request.method == 'GET':
-        serializer = ShoppingListSerializer(data=request.data)
+        serializer = ShoppingListSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
