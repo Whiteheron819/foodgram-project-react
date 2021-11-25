@@ -6,7 +6,11 @@ from django.core.validators import MinValueValidator
 class AppUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
-    email = models.EmailField(unique=True)
+    email = models.EmailField(verbose_name='Почта', unique=True)
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class Tag(models.Model):
@@ -103,14 +107,10 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    user = models.ForeignKey(AppUser, on_delete=models.CASCADE,
-                             related_name='favourite')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               related_name='in_favourite')
-
-    class Meta:
-        constraints = (models.UniqueConstraint(fields=['user', 'recipe'],
-                                               name='following_unique'),)
+                               related_name='in_favorite')
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE,
+                             related_name='favorite')
 
 
 class ShoppingList(models.Model):
