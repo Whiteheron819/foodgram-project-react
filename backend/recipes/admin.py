@@ -1,13 +1,23 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django import forms
 
 from .models import Ingredient, RecipeIngredient, Recipe, Tag, AppUser, Favorite
 
 
+class UserCreationForm(forms.ModelForm):
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+
+    class Meta:
+        model = AppUser
+        fields = ('email', )
+
+
 class UserAdmin(BaseUserAdmin):
-    search_fields = ('email',)
+    list_display = ('email', )
+    search_fields = ('email', 'first_name')
     ordering = ('email',)
-    filter_horizontal = ()
 
 
 class IngredientRecipeInLine(admin.TabularInline):

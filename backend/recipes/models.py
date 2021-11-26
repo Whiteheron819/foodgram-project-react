@@ -7,6 +7,18 @@ class AppUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     email = models.EmailField(verbose_name='Почта', unique=True)
+    username = models.CharField(
+        verbose_name='username',
+        max_length=30,
+        unique=True,
+        null=True
+    )
+    first_name = models.CharField(verbose_name='Имя', max_length=30, null=True)
+    last_name = models.CharField(
+        verbose_name='Фамилия',
+        max_length=40,
+        null=True
+    )
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -118,3 +130,12 @@ class ShoppingList(models.Model):
                                related_name='recipes_in')
     user = models.ForeignKey(AppUser, on_delete=models.CASCADE,
                              related_name='current_user')
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(AppUser,
+                             on_delete=models.CASCADE,
+                             related_name='subscriptions')
+    author = models.ForeignKey(AppUser,
+                               on_delete=models.CASCADE,
+                               related_name='subcriptors')
