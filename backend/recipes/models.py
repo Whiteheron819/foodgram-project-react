@@ -109,8 +109,12 @@ class RecipeTag(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(to=Recipe, on_delete=models.CASCADE, related_name='ingredients_in')
-    ingredient = models.ForeignKey(to=Ingredient, on_delete=models.CASCADE, related_name='ingredients_in')
+    recipe = models.ForeignKey(
+        to=Recipe, on_delete=models.CASCADE, related_name='ingredients_in'
+    )
+    ingredient = models.ForeignKey(
+        to=Ingredient, on_delete=models.CASCADE, related_name='ingredients_in'
+    )
     amount = models.FloatField(validators=[MinValueValidator(0)])
 
     class Meta:
@@ -138,4 +142,4 @@ class Subscription(models.Model):
                              related_name='subscriptions')
     author = models.ForeignKey(AppUser,
                                on_delete=models.CASCADE,
-                               related_name='subcriptors')
+                               related_name='subscriptors')

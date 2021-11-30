@@ -1,19 +1,21 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.serializers import UserSerializer
+from djoser.views import UserViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
-from rest_framework.request import Request
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from .filters import MySearchFilter, RecipeFilter
-from .models import Ingredient, Recipe, AppUser, Tag, ShoppingList, Favorite
+from .models import Ingredient, Recipe, AppUser, Tag, ShoppingList, Favorite, \
+    Subscription
 from .permissions import IsAuthorOrReadOnly
 from .serializers import IngredientSerializer, FavoriteSerializer, \
     GetRecipeSerializer, \
     PostRecipeSerializer, TagsSerializer, ShoppingListSerializer, \
-    RecipeToRepresentFavoriteSerializer
+    RecipeToRepresentFavoriteSerializer, SubscribeSerializer, \
+    CustomUserSerializer, GetSubscribeSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -32,17 +34,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return PostRecipeSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(UserViewSet):
     queryset = AppUser.objects.all()
-    permission_classes = [
-        permissions.AllowAny
-    ]
-    serializer_class = UserSerializer
-
-    def retrieve(self, request: Request, *args, **kwargs):
-        if kwargs.get('pk') == 'me':
-            return Response(self.get_serializer(request.user).data)
-        return super().retrieve(request, args, kwargs)
+    serializer_class = CustomUserSerializer
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -69,7 +63,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 def add_favorite(request, id):
     recipe = get_object_or_404(Recipe, id=id)
     favorited = Favorite.objects.filter(recipe=recipe,
-                                          user=request.user).exists()
+                                        user=request.user).exists()
     data = {"user": request.user.id,
             "recipe": id,
             }
@@ -80,7 +74,9 @@ def add_favorite(request, id):
             recipe_serializer = (
                 RecipeToRepresentFavoriteSerializer(recipe)
             )
-            return Response(recipe_serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                recipe_serializer.data, status=status.HTTP_201_CREATED
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'DELETE':
@@ -91,6 +87,43 @@ def add_favorite(request, id):
             obj.delete()
             return Response('Рецепт удален из избранного',
                             status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'DELETE'])
+def subscription(request, id):
+    subscription_user = get_object_or_404(AppUser, id=id)
+    user = request.user
+    subscribed = (
+        Subscription.objects.filter(user=user,
+                                    author=subscription_user).exists()
+    )
+    data = {'user': request.user.id,
+            'author': id}
+    if request.method == 'GET':
+        serializer = SubscribeSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'DELETE':
+        if not subscribed:
+            return Response("Нет такой подписки",
+                            status=status.HTTP_400_BAD_REQUEST)
+        obj = (Subscription.objects.filter(user=request.user,
+                                           author=subscription_user))
+        obj.delete()
+        return Response('Автор удален из подписок', status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+def subscriptions_list(request):
+    subscription_list = AppUser.objects.filter(subscriptors__user=request.user)
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(subscription_list, request)
+    serializer = GetSubscribeSerializer(result_page,
+                                        many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET', 'DELETE'])
