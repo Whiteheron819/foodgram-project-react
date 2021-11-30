@@ -20,19 +20,10 @@ class TagsSerializer(serializers.ModelSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = AppUser
         fields = ('email', 'id', 'username', 'first_name', 'last_name')
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return (
-            Subscription.objects.filter(user=request.user, author=obj).exists()
-        )
 
 
 class IngredientSerializer(serializers.ModelSerializer):

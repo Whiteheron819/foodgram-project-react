@@ -1,12 +1,11 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import RecipeViewSet, UserViewSet, TagViewSet, IngredientViewSet, \
+from .views import RecipeViewSet, TagViewSet, IngredientViewSet, \
     shopping_list, download_shopping_list, add_favorite
 
 router = routers.DefaultRouter()
 router.register('recipes', RecipeViewSet, 'recipes')
-router.register('users', UserViewSet, 'users')
 router.register('tags', TagViewSet, 'tags')
 router.register('ingredients', IngredientViewSet, 'ingredients')
 
