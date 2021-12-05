@@ -1,15 +1,12 @@
-from rest_framework import serializers
-from .models import Ingredient, Recipe, RecipeIngredient, AppUser, Tag, Favorite, ShoppingList, Subscription
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 
+from .utils import get_existence
 
-def get_existence(self, obj, model):
-    request = self.context.get('request')
-    if request is None or request.user.is_anonymous:
-        return False
-    return model.objects.filter(user=request.user, recipe=obj).exists()
+from .models import (AppUser, Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingList, Subscription, Tag)
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -59,6 +56,7 @@ class GetRecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class PostRecipeIngredientSerializer(serializers.ModelSerializer):
+
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),
                                             source='ingredient.id')
 
@@ -104,10 +102,14 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 
 class PostRecipeSerializer(serializers.ModelSerializer):
-    ingredients = PostRecipeIngredientSerializer(many=True,
-                                                 source='ingredients_in')
-    tags = serializers.PrimaryKeyRelatedField(many=True,
-                                              queryset=Tag.objects.all())
+    ingredients = PostRecipeIngredientSerializer(
+        many=True,
+        source='ingredients_in'
+    )
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
     image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
@@ -123,7 +125,9 @@ class PostRecipeSerializer(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             current_ingredient = (
-                Ingredient.objects.get(pk=ingredient['ingredient']['id'].id)
+                get_object_or_404(
+                    Ingredient, pk=ingredient['ingredient']['id'].id
+                )
             )
             amount = ingredient['amount']
             RecipeIngredient.objects.update_or_create(
@@ -136,7 +140,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         if 'ingredients' in self.initial_data:
-            ingredients = validated_data.pop('ingredients')
+            ingredients = validated_data.pop('ingredients_in')
             instance.ingredients.clear()
             for ingredient in ingredients:
                 current_ingredient = (
@@ -160,13 +164,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         if 'tags' in self.initial_data:
             tags = validated_data.pop('tags')
             instance.tags.set(tags)
-
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time',
-                                                   instance.cooking_time)
-        instance.save()
+        super().update(instance, validated_data)
         return instance
 
 
@@ -201,9 +199,9 @@ class RecipeSubscribe(serializers.ModelSerializer):
 class SubscribeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
-        id = data['author'].id
+        author = data['author']
         user = data['user']
-        if Subscription.objects.filter(author=id, user=user).exists():
+        if Subscription.objects.filter(author=author, user=user).exists():
             raise serializers.ValidationError('You are subscribed already!')
         return data
 

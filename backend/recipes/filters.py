@@ -4,7 +4,7 @@ from rest_framework.filters import SearchFilter
 from .models import Tag
 
 
-class MySearchFilter(SearchFilter):
+class IngredientFilter(SearchFilter):
     search_param = 'name'
 
 

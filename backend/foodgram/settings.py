@@ -19,7 +19,7 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = 'django-insecure-vvr28e85nrigere_*antezn%&=suxc%6yq(p+2^!4k))63u!@u'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = True
 
@@ -98,7 +98,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+LOGIN_URL = '/recipes/'
 
 LANGUAGE_CODE = 'en-us'
 

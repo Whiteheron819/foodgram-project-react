@@ -1,19 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django import forms
 
-from .models import Ingredient, RecipeIngredient, Recipe, Tag, AppUser
-
-
-class UserCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(
-        label='Password confirmation', widget=forms.PasswordInput
-    )
-
-    class Meta:
-        model = AppUser
-        fields = ('email', )
+from .models import Ingredient, RecipeIngredient, Recipe, Tag, AppUser, Subscription, Favorite, ShoppingList
 
 
 class UserAdmin(BaseUserAdmin):
@@ -37,6 +25,8 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Ingredient)
+admin.site.register(Favorite)
+admin.site.register(ShoppingList)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(RecipeIngredient)
 admin.site.register(Tag)

@@ -1,21 +1,23 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import viewsets, permissions, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from .filters import MySearchFilter, RecipeFilter
-from .models import Ingredient, Recipe, AppUser, Tag, ShoppingList, Favorite, \
-    Subscription
+from .filters import IngredientFilter, RecipeFilter
+from .models import (AppUser, Favorite, Ingredient, Recipe, ShoppingList,
+                     Subscription, Tag)
 from .permissions import IsAuthorOrReadOnly
-from .serializers import IngredientSerializer, FavoriteSerializer, \
-    GetRecipeSerializer, \
-    PostRecipeSerializer, TagsSerializer, ShoppingListSerializer, \
-    RecipeToRepresentFavoriteSerializer, SubscribeSerializer, \
-    CustomUserSerializer, GetSubscribeSerializer
+from .serializers import (CustomUserSerializer, FavoriteSerializer,
+                          GetRecipeSerializer, GetSubscribeSerializer,
+                          IngredientSerializer, PostRecipeSerializer,
+                          RecipeToRepresentFavoriteSerializer,
+                          ShoppingListSerializer, SubscribeSerializer,
+                          TagsSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -54,42 +56,42 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         permissions.AllowAny
     ]
     serializer_class = IngredientSerializer
-    filter_backends = [MySearchFilter]
+    filter_backends = [IngredientFilter]
     search_fields = ['name', ]
     pagination_class = None
 
 
 @api_view(['GET', 'DELETE'])
+@login_required()
 def add_favorite(request, id):
     recipe = get_object_or_404(Recipe, id=id)
     favorited = Favorite.objects.filter(recipe=recipe,
                                         user=request.user).exists()
-    data = {"user": request.user.id,
-            "recipe": id,
+    data = {'user': request.user.id,
+            'recipe': id,
             }
     if request.method == 'GET':
         serializer = FavoriteSerializer(data=data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            recipe_serializer = (
-                RecipeToRepresentFavoriteSerializer(recipe)
-            )
-            return Response(
-                recipe_serializer.data, status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        recipe_serializer = (
+            RecipeToRepresentFavoriteSerializer(recipe)
+        )
+        return Response(
+            recipe_serializer.data, status=status.HTTP_201_CREATED
+        )
 
     if request.method == 'DELETE':
-        if request.method == 'DELETE':
-            if not favorited:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            obj = Favorite.objects.filter(recipe=recipe, user=request.user)
-            obj.delete()
-            return Response('Рецепт удален из избранного',
+        if not favorited:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        obj = Favorite.objects.filter(recipe=recipe, user=request.user)
+        obj.delete()
+        return Response('Рецепт удален из избранного',
                             status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET', 'DELETE'])
+@login_required()
 def subscription(request, id):
     subscription_user = get_object_or_404(AppUser, id=id)
     user = request.user
@@ -101,10 +103,10 @@ def subscription(request, id):
             'author': id}
     if request.method == 'GET':
         serializer = SubscribeSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     if request.method == 'DELETE':
         if not subscribed:
             return Response("Нет такой подписки",
@@ -116,6 +118,7 @@ def subscription(request, id):
 
 
 @api_view(['GET'])
+@login_required()
 def subscriptions_list(request):
     subscription_list = AppUser.objects.filter(subscriptors__user=request.user)
     paginator = PageNumberPagination()
@@ -127,17 +130,17 @@ def subscriptions_list(request):
 
 
 @api_view(['GET', 'DELETE'])
+@login_required()
 def shopping_list(request, id):
-    data = {"user": request.user.id,
-            "recipe": id,
+    data = {'user': request.user.id,
+            'recipe': id,
             }
     recipe = get_object_or_404(Recipe, id=id)
     if request.method == 'GET':
         serializer = ShoppingListSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     if request.method == 'DELETE':
         if request.method == 'DELETE':
             obj = ShoppingList.objects.filter(recipe=recipe, user=request.user)
@@ -148,18 +151,16 @@ def shopping_list(request, id):
 
 @api_view(['GET'])
 def download_shopping_list(request):
-    content = request.user.current_user.all()
+    item = request.user.current_user.all().get()
+    ingredients = item.recipe.ingredients_in.values_list(
+        'ingredient__name', 'ingredient__measurement_unit', 'amount'
+    )
     shop_list = {}
     text = 'Ваш список покупок: \n'
-    for item in content:
-        ingredients = item.recipe.ingredients_in.all()
-        for recipe_ingredient in ingredients:
-            name = recipe_ingredient.ingredient.name
-            amount = recipe_ingredient.amount
-            measure_unit = recipe_ingredient.ingredient.measurement_unit
-            shop_list[name] = {}
-            shop_list[name]['amount'] = amount
-            shop_list[name]['measure_unit'] = measure_unit
+    for name, measure_unit, amount in ingredients:
+        shop_list[name] = {}
+        shop_list[name]['amount'] = amount
+        shop_list[name]['measure_unit'] = measure_unit
     for name in shop_list:
         text += f'{name}'
         text += f' {shop_list[name]["amount"]}'
