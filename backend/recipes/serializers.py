@@ -124,7 +124,6 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-
         if 'ingredients' in self.initial_data:
             ingredients = validated_data.pop('ingredients_in')
             instance.ingredients.clear()
