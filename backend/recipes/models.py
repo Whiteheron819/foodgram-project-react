@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
 
 
 class AppUser(AbstractUser):
@@ -75,12 +75,12 @@ class Recipe(models.Model):
         null=True
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
 
 
 class Ingredient(models.Model):

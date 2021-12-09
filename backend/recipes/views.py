@@ -9,8 +9,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from .filters import IngredientFilter, RecipeFilter
-from .models import (AppUser, Favorite, Ingredient, Recipe, ShoppingList,
-                     Subscription, Tag)
+from .models import (AppUser, Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingList, Subscription, Tag)
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           GetRecipeSerializer, GetSubscribeSerializer,
@@ -151,16 +151,19 @@ def shopping_list(request, id):
 
 @api_view(['GET'])
 def download_shopping_list(request):
-    item = request.user.current_user.all().get()
-    ingredients = item.recipe.ingredients_in.values_list(
-        'ingredient__name', 'ingredient__measurement_unit', 'amount'
-    )
-    shop_list = {}
     text = 'Ваш список покупок: \n'
-    for name, measure_unit, amount in ingredients:
+    shop_list = {}
+    items = RecipeIngredient.objects.filter(
+        recipe__recipes_in__user=request.user
+    )
+    for item in items:
+        ingredients = item.ingredient.ingredients_in.values_list(
+            'ingredient__name', 'ingredient__measurement_unit', 'amount'
+        )[0]
+        name, unit, amount = ingredients[0], ingredients[1], ingredients[2]
         shop_list[name] = {}
         shop_list[name]['amount'] = amount
-        shop_list[name]['measure_unit'] = measure_unit
+        shop_list[name]['measure_unit'] = unit
     for name in shop_list:
         text += f'{name}'
         text += f' {shop_list[name]["amount"]}'
