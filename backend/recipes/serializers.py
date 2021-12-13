@@ -52,6 +52,10 @@ class GetRecipeIngredientSerializer(serializers.ModelSerializer):
                               source='ingredient.measurement_unit')
     )
 
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
 
 class PostRecipeIngredientSerializer(serializers.ModelSerializer):
 
@@ -137,12 +141,30 @@ class PostRecipeSerializer(serializers.ModelSerializer):
 
 class ShoppingListSerializer(serializers.ModelSerializer):
 
+    def validate(self, data):
+        id = data['recipe'].id
+        user = data['user']
+        if ShoppingList.objects.filter(recipe=id, user=user).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в вашем списке покупок!'
+            )
+        return data
+
     class Meta:
         model = ShoppingList
         fields = '__all__'
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+
+    def validate(self, data):
+        recipe_id = data['recipe'].id
+        user = data['user']
+        if Favorite.objects.filter(recipe=recipe_id, user=user).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя!'
+                )
+        return data
 
     class Meta:
         model = Favorite

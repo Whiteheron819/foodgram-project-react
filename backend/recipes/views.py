@@ -161,9 +161,12 @@ def download_shopping_list(request):
             'ingredient__name', 'ingredient__measurement_unit', 'amount'
         )[0]
         name, unit, amount = ingredients[0], ingredients[1], ingredients[2]
-        shop_list[name] = {}
-        shop_list[name]['amount'] = amount
-        shop_list[name]['measure_unit'] = unit
+        if name in shop_list.keys():
+            shop_list[name]['amount'] += amount
+        else:
+            shop_list[name] = {}
+            shop_list[name]['amount'] = amount
+            shop_list[name]['measure_unit'] = unit
     for name in shop_list:
         text += f'{name}'
         text += f' {shop_list[name]["amount"]}'
