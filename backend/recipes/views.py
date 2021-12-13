@@ -67,10 +67,11 @@ def add_favorite(request, id):
     recipe = get_object_or_404(Recipe, id=id)
     favorited = Favorite.objects.filter(recipe=recipe,
                                         user=request.user).exists()
-    data = {'user': request.user.id,
-            'recipe': id,
-            }
+
     if request.method == 'GET':
+        data = {'user': request.user.id,
+                'recipe': id,
+                }
         serializer = FavoriteSerializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -163,6 +164,7 @@ def download_shopping_list(request):
         name, unit, amount = ingredients[0], ingredients[1], ingredients[2]
         if name in shop_list.keys():
             shop_list[name]['amount'] += amount
+            print(amount)
         else:
             shop_list[name] = {}
             shop_list[name]['amount'] = amount

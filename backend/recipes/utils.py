@@ -18,8 +18,8 @@ def update_or_create_ingredients(instance, ingredients):
         if (RecipeIngredient.objects.filter(
                 recipe=instance,
                 ingredient=current_ingredient).exists()):
-            instance.ingredient.amount = (
-                    ingredient['ingredient']['amount']
+            instance.ingredients.amount = (
+                    ingredient['amount']
             )
         else:
             RecipeIngredient.objects.update_or_create(
