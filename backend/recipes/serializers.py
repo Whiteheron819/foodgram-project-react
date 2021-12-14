@@ -177,7 +177,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         user = data['user']
         if Favorite.objects.filter(recipe=recipe_id, user=user).exists():
             raise serializers.ValidationError(
-                'Вы уже подписаны на этого пользователя!'
+                'Вы уже подписаны на этого пользователя.'
                 )
         return data
 
