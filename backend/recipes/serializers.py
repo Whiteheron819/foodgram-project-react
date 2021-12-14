@@ -138,6 +138,21 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
         return instance
 
+    def validate(self, data):
+        ingredients = data['ingredients_in']
+        existing_ingredients = {}
+        for ingredient in ingredients:
+            if (
+                    ingredient['ingredient']['id']
+            ) not in existing_ingredients:
+                instance = ingredient['ingredient']['id']
+                existing_ingredients[instance] = True
+            else:
+                raise serializers.ValidationError(
+                    'Повторяющиеся ингредиенты в списке'
+                )
+        return data
+
 
 class ShoppingListSerializer(serializers.ModelSerializer):
 
