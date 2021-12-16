@@ -20,7 +20,3 @@
 + Установить Docker
 + Перейти в терминале в папку infra/
 + Выполнить команду: docker-compose up -d --build
-
-## Учётная запись администратора:
-+ Логин - root@mail.ru
-+ Пароль - ItIsAGoodDayToDie
